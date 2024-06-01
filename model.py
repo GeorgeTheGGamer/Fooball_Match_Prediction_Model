@@ -74,8 +74,11 @@ rf = RandomForestClassifier(n_estimators=50, min_samples_split=10,random_state=1
 
 train = matches[matches["date"] < "2022-01-01"]
 test = matches[matches["date"] > "2022-01-01"]
+#the training set must be before the first of january 2022
 
 predictors = ["venue_code","opp_code","hour","day_code"]
+#These are the predictors that will be used to train the machine learning model 
+
 
 
 

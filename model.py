@@ -79,7 +79,6 @@ test = matches[matches["date"] > "2022-01-01"]
 predictors = ["venue_code","opp_code","hour","day_code"]
 #These are the predictors that will be used to train the machine learning model 
 
-#will continue early tomorrow to develop this aspect of the football predictors 
 
 
 

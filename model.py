@@ -79,6 +79,7 @@ test = matches[matches["date"] > "2022-01-01"]
 predictors = ["venue_code","opp_code","hour","day_code"]
 #These are the predictors that will be used to train the machine learning model 
 
+#one more day travelling tomorrow
 
 
 

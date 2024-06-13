@@ -129,9 +129,9 @@ cols = ["gf", "ga", "sh", "sot", "dist", "fk", "pk", "pkatt"]
 new_cols = [f"{c}_rolling" for c in cols]
 #adds the wod rollin gto each colum name 
 
-print(new_cols)
+new_cols
 
-print(rolling_averages(group, cols, new_cols))
+rolling_averages(group, cols, new_cols)
 #Can pass into the algorithm to improve algorithmn
 
 matches_rolling = matches.groupby("team").apply(lambda x: rolling_averages(x, cols, new_cols))
@@ -182,8 +182,36 @@ print(combined)
 #we have data for home and away matches, can comine the data together
 
 
+class MissingDict(dict):
+    _missing_ = lambda self, key: key
 
+map_values = {"Brighton and Hove Albion" : "Brighton",
+              "Manchester United" : "Manchester Utd",
+              "Newcastle United" : "Newcastle Utd",
+              "Tottenham Hotspur" : "Tottenham",
+              "West Ham United" : "West Ham",
+              "Wolverhampton Wanderers": "Wolves"
+              }
 
+#Missing dictionary replaces long names with the shorter ones 
+#If you pass brentford in it will pass in brentford
+
+mapping = MissingDict(**map_values)
+
+mapping["Arsenal"]
+#Prints Arsenal
+
+mapping["Tottenham Hotspur"]
+#Prints Tottenham
+
+combined["new_team"] = combined["team"].map(mapping)
+
+merged = combined.merge(combined, left_on=["date","new_team"], right_on = ["date", "opponent"])
+
+merged
+#This basically makes a new dataframe where you can see where the predictions line up and where it doesn't.
+
+#Add more data for more accuracy
 
 
 

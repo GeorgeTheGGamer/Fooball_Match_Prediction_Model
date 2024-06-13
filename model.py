@@ -79,7 +79,111 @@ test = matches[matches["date"] > "2022-01-01"]
 predictors = ["venue_code","opp_code","hour","day_code"]
 #These are the predictors that will be used to train the machine learning model 
 
-#one more day travelling tomorrow
+rf.fit(train[predictors], train["target"])
+
+preds = rf.predict(test[predictors])
+
+from sklearn.metrics import accuracy_score
+#Percentsge of the time tht the prediction was accurate 
+
+acc = accuracy_score(test["target"],preds)
+
+print(acc)
+# 0.61 answer, is accuarte 61% of the time 
+
+combined = pd.DataFrame(dict(actual=test["target"], prediction=preds), index=test.index)
+#Create a cross tab using pandas 
+
+print(pd.crosstab(index=combined["actual"], columns=combined["prediction"]))
+#141 times correct, 76 times not correct  
+#Revise accuracy metric for wins 
+
+from sklearn.metrics import precision_score
+
+precision_score(test["target"], preds)
+#Presision was only 47% 
+#Improve this factor for precision
+
+#Next step, improving precision and rolling averages 
+
+#create more predictors
+
+grouped_matches = matches.groupby("team")
+group = grouped_matches.get_group("Manchester City")
+#Will give the single group from the data 
+#we want to compute rolling avergages 
+#basically taking form into account 
+
+def rolling_averages(group, cols, new_cols):
+    group = group.sort_values("date")
+    rolling_stats = group[cols].rolling(3, closed='left').mean()
+    #closed left gets rid of using future predictions in the prediction, you only want the past 3 weeks for form
+    group[new_cols] = rolling_stats
+    group = group.dropna(subset=new_cols)
+    #removes rows with missing values, most prediction models cant use missing values 
+    return group
+    #finally return group and close the function
+
+
+cols = ["gf", "ga", "sh", "sot", "dist", "fk", "pk", "pkatt"]
+new_cols = [f"{c}_rolling" for c in cols]
+#adds the wod rollin gto each colum name 
+
+print(new_cols)
+
+print(rolling_averages(group, cols, new_cols))
+#Can pass into the algorithm to improve algorithmn
+
+matches_rolling = matches.groupby("team").apply(lambda x: rolling_averages(x, cols, new_cols))
+
+matches_rolling = matches_rolling.droplevel('team')
+#drops the unessesary level from the dta frame 
+#each row has an index where you have to call a row 
+#Alot of values in the index is repeating 
+
+matches_rolling.index = range(matches_rolling.shape[0])
+#and now there are unique values for each index, for this ot work you need to have specific values for each row of the date frame.
+
+#Retraining the data model
+#using the new predictors now 
+
+def make_predicitons(data, predictors):
+#time to take previous code and finally train the full model 
+    
+    #split training and test data 
+    train = matches[matches["date"] < "2022-01-01"]
+    test = matches[matches["date"] > "2022-01-01"]
+    #the training set must be before the first of january 2022
+
+    rf.fit(train[predictors], train["target"])
+    preds = rf.predict(test[predictors])
+    #Create the predictions
+    combined = pd.DataFrame(dict(actual=test["target"], prediction=preds), index=test.index)
+    #The combine the predictions and the actuals together
+    precision = precision_score(test["target"], preds)
+    #Then caluclate the precision 
+    return combined, precision
+    #Then return the combined and the precison 
+
+    #All put in s function so it is easier to use 
+
+combined, precision = make_predicitons(matches_rolling, predictors + new_cols)
+
+precision
+#Precison is now 62.5%, which is a considerable increase from the previous 40%
+
+combined =combined.merge(matches_rolling[["date", "tean", "opponent", "result"]], left_index=True, right_index=True)
+#Pandas will look in the combined data frame, it will find the corresponeding index in matches rolling and then will merge the row based on that
+
+print(combined)
+#there is now additional information needed to know what the oppenent and the team playing to know if the information is true.
+
+#Combining home and away matches
+#we have data for home and away matches, can comine the data together
+
+
+
+
 
 
 
